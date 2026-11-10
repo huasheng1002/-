@@ -1,0 +1,63 @@
+# 加密压缩包批量处理工具 - 配置示例
+# 复制到项目根目录为 config.yaml 后按需修改。
+# 相对路径按“当前工作目录”解析；archive.seven_zip_path 找不到时会再按配置文件所在目录解析。
+
+input:
+  # 输入可以是目录或单个压缩包，可写多个
+  paths:
+    - "D:/input/files"
+    - "D:/input/single.zip"
+  recursive: true
+  # 只收集这些后缀（不含点）。分卷只需写入口后缀。
+  extensions: ["zip", "7z", "zip.001", "7z.001"]
+
+password:
+  table_file: "D:/config/passwords.yaml"
+  # 所有输出压缩包统一使用的新密码
+  new_password: "在这里填写统一的新密码"
+  # stdin | arg
+  # 说明：Windows 版 7z.exe 无法从管道读取密码，stdin 模式会自动探测并回退到
+  # -p<password>；如不希望每次探测，可显式设为 arg。
+  pass_via: "stdin"
+  # stdin 传参时的密码编码：auto（默认，OEM 代码页 -> UTF-8）、utf-8、cp936 等
+  stdin_encoding: "auto"
+
+# 子串匹配，不区分大小写，仅匹配文件名（不匹配目录名）
+ad_keywords:
+  - "广告"
+  - "vpn"
+  - "推广"
+
+# 覆盖式注入到解压目录；target_path 必须是相对路径
+add_files:
+  - source: "D:/add/notice.txt"
+    target_path: "notice.txt"
+  - source: "D:/add/config/setting.ini"
+    target_path: "config/setting.ini"
+
+output:
+  dir: "D:/output"
+  # true: 保留输入目录下的相对结构；false: 全部平铺到输出目录
+  keep_relative_structure: true
+  # 重名时追加此词；仍冲突则追加序号（副本2、副本3……）
+  rename_on_conflict: "副本"
+
+archive:
+  # 主引擎：随程序分发的 7z 控制台程序
+  seven_zip_path: "./bin/7z.exe"
+  # 7z 不可用时，是否允许仅对非分卷 zip 启用 pyzipper 备选引擎
+  allow_zip_fallback: false
+  # null=自动（乱码时用 936 重试）；936=强制 GBK；65001=UTF-8
+  code_page: null
+  # 7z 格式是否加密文件名（-mhe=on）
+  sevenz_encrypt_header: true
+  # zip 格式是否使用 AES-256（-mem=AES256）
+  zip_aes: true
+
+log:
+  dir: "D:/logs"
+  file: "process.log"
+  level: "INFO"
+  # 按需求默认记录明文密码；生产环境建议改为 false 并限制日志目录权限
+  log_password: true
+  console: true
